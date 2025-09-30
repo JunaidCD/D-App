@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
-
 // Components
 import Rating from './Rating'
 
@@ -9,6 +8,9 @@ import close from '../assets/close.svg'
 const Product = ({ item, provider, account, dappazon, togglePop }) => {
   const [order, setOrder] = useState(null)
   const [hasBought, setHasBought] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [quantity, setQuantity] = useState(1)
 
   const fetchDetails = async () => {
     const events = await dappazon.queryFilter("Buy")
@@ -23,19 +25,32 @@ const Product = ({ item, provider, account, dappazon, togglePop }) => {
   }
 
   const buyHandler = async () => {
-    const signer = await provider.getSigner()
+    try {
+      setIsLoading(true)
+      const signer = await provider.getSigner()
 
-    // Buy item...
-    let transaction = await dappazon.connect(signer).buy(item.id, { value: item.cost })
-    await transaction.wait()
+      // Buy item...
+      const totalCost = ethers.parseUnits((parseFloat(ethers.formatUnits(item.cost, 'ether')) * quantity).toString(), 'ether')
+      let transaction = await dappazon.connect(signer).buy(item.id, { value: totalCost })
+      await transaction.wait()
 
-    setHasBought(true)
+      setHasBought(true)
+      setShowSuccess(true)
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Purchase failed:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
     fetchDetails()
   }, [hasBought])
-
   return (
     <div className="product">
       <div className="product__details">
@@ -51,7 +66,7 @@ const Product = ({ item, provider, account, dappazon, togglePop }) => {
 
           <p>{item.address}</p>
 
-          <h2>{ethers.formatUnits(item.cost.toString(), 'ether')} ETH</h2>
+          <h2>{(parseFloat(ethers.formatUnits(item.cost.toString(), 'ether')) * quantity).toFixed(4)} ETH</h2>
 
           <hr />
 
@@ -67,7 +82,7 @@ const Product = ({ item, provider, account, dappazon, togglePop }) => {
         </div>
 
         <div className="product__order">
-          <h1>{ethers.formatUnits(item.cost.toString(), 'ether')} ETH</h1>
+          <h1>{(parseFloat(ethers.formatUnits(item.cost.toString(), 'ether')) * quantity).toFixed(4)} ETH</h1>
 
           <p>
             FREE delivery <br />
@@ -76,15 +91,44 @@ const Product = ({ item, provider, account, dappazon, togglePop }) => {
             </strong>
           </p>
 
-          {item.stock > 0 ? (
+          {Number(item.stock) > 0 ? (
             <p>In Stock.</p>
           ) : (
             <p>Out of Stock.</p>
           )}
 
-          <button className='product__buy' onClick={buyHandler}>
-            Buy Now
+          <div className="quantity__selector">
+            <label>Quantity:</label>
+            <div className="quantity__controls">
+              <button 
+                className="quantity__btn" 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span className="quantity__display">{quantity}</span>
+              <button 
+                className="quantity__btn" 
+                onClick={() => setQuantity(Math.min(Number(item.stock), quantity + 1))}
+                disabled={quantity >= Number(item.stock)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <button className='product__buy' onClick={buyHandler} disabled={isLoading || Number(item.stock) === 0}>
+            {isLoading ? 'Processing...' : 'Buy Now'}
           </button>
+
+          {showSuccess && (
+            <div className='product__success'>
+              <p style={{color: 'green', fontWeight: 'bold', marginTop: '10px'}}>
+                Purchase Successful! Your order has been confirmed.
+              </p>
+            </div>
+          )}
 
           <p><small>Ships from</small> Dappazon</p>
           <p><small>Sold by</small> Dappazon</p>

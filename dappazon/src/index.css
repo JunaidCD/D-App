@@ -398,11 +398,94 @@ nav {
 
 @media screen and (max-width: 576px) {
   .product__details {
-    height: 95%;
     overflow-y: scroll;
   }
 
   .product__image {
     grid-column: span 2;
   }
+}
+
+/* ------------------------------------------------------ */
+/* -- SUCCESS MESSAGE -- */
+
+.product__success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.product__success p {
+  color: #155724 !important;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.product__buy:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ------------------------------------------------------ */
+/* -- QUANTITY SELECTOR -- */
+
+.quantity__selector {
+  margin: 15px 0;
+}
+
+.quantity__selector label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--clr-black);
+}
+
+.quantity__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantity__btn {
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--clr-grey);
+  background-color: var(--clr-white);
+  color: var(--clr-black);
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.quantity__btn:hover:not(:disabled) {
+  background-color: var(--clr-orange);
+  border-color: var(--clr-orange);
+}
+
+.quantity__btn:disabled {
+  background-color: #f5f5f5;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.quantity__display {
+  min-width: 40px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 8px;
+  border: 1px solid var(--clr-grey);
+  border-radius: 4px;
+  background-color: var(--clr-white);
 }
