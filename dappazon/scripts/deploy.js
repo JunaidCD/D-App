@@ -5,10 +5,12 @@
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
 const hre = require("hardhat")
+const fs = require("fs")
+const path = require("path")
 const { items } = require("../src/items.json")
 
 const tokens = (n) => {
-  return ethers.utils.parseUnits(n.toString(), 'ether')
+  return ethers.parseUnits(n.toString(), 'ether')
 }
 
 async function main() {
@@ -18,9 +20,28 @@ async function main() {
   // Deploy Dappazon
   const Dappazon = await hre.ethers.getContractFactory("Dappazon")
   const dappazon = await Dappazon.deploy()
-  await dappazon.deployed()
+  await dappazon.waitForDeployment()
 
-  console.log(`Deployed Dappazon Contract at: ${dappazon.address}\n`)
+  const contractAddress = await dappazon.getAddress()
+  console.log(`Deployed Dappazon Contract at: ${contractAddress}\n`)
+
+  // Update config.json with new contract address
+  const configPath = path.join(__dirname, "../src/config.json")
+  const networkId = hre.network.config.chainId || 31337
+  
+  let config = {}
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+  }
+  
+  config[networkId] = {
+    dappazon: {
+      address: contractAddress
+    }
+  }
+  
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 4))
+  console.log(`Updated config.json with contract address for network ${networkId}\n`)
 
   // Listing items...
   for (let i = 0; i < items.length; i++) {

@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 
 const tokens = (n) => {
-  return ethers.utils.parseUnits(n.toString(), 'ether')
+  return ethers.parseUnits(n.toString(), 'ether')
 }
 
 // Global constants for listing an item...
@@ -85,7 +85,7 @@ describe("Dappazon", () => {
     })
 
     it("Updates the contract balance", async () => {
-      const result = await ethers.provider.getBalance(dappazon.address)
+      const result = await ethers.provider.getBalance(await dappazon.getAddress())
       expect(result).to.equal(COST)
     })
 
@@ -120,7 +120,7 @@ describe("Dappazon", () => {
     })
 
     it('Updates the contract balance', async () => {
-      const result = await ethers.provider.getBalance(dappazon.address)
+      const result = await ethers.provider.getBalance(await dappazon.getAddress())
       expect(result).to.equal(0)
     })
   })
